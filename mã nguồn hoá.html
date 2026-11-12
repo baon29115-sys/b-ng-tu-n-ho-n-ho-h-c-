@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemCompare Pro - Bảng Tuần Hoàn Nhóm A (7 Chu Kỳ)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .bg-grid { background-size: 20px 20px; background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px); }
+        .bar-animate { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        .site-nav { flex-wrap: wrap; }
+        .site-nav > button { min-height: 44px; justify-content: center; }
+        .passport-layout { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 24px; align-items: start; }
+        .passport-panel { min-width: 0; padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 20px; }
+        .passport-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+        .passport-choice { min-width: 0; min-height: 82px; padding: 8px 3px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; color: #334155; text-align: center; transition: background .15s, border-color .15s; }
+        .passport-choice:hover { background: #eef2ff; border-color: #818cf8; }
+        .passport-choice[aria-pressed="true"] { background: #4338ca; color: white; border-color: #4338ca; box-shadow: 0 3px 8px #4338ca26; }
+        .passport-choice:focus-visible, .passport-action:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+        .passport-number { display: block; font-size: 10px; opacity: .75; }
+        .passport-symbol { display: block; font-size: 24px; line-height: 1.2; font-weight: 800; }
+        .passport-name { display: block; overflow: hidden; text-overflow: ellipsis; font-size: 9px; white-space: nowrap; margin-top: 4px; }
+        .passport-viewer { scroll-margin-top: 160px; }
+        .passport-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+        .passport-facts > div { min-width: 0; border-radius: 10px; padding: 10px; background: #f1f5f9; font-size: 12px; overflow-wrap: anywhere; }
+        .passport-facts dt { color: #64748b; font-size: 11px; margin-bottom: 4px; }
+        .passport-facts dd { font-weight: 700; }
+        .passport-image { display: block; width: 100%; height: auto; max-width: 560px; margin: auto; border-radius: 8px; }
+        .passport-action { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; background: #eef2ff; color: #3730a3; }
+        .passport-action:disabled { opacity: .4; cursor: default; }
+        @media (max-width: 767px) {
+            .site-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+            .site-nav > button { padding: 8px 6px; font-size: 11px; }
+            .passport-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+            .passport-panel { padding: 14px; }
+            .passport-viewer { scroll-margin-top: 195px; }
+        }
+        @media (max-width: 359px) { .passport-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col bg-grid">
+
+    <!-- HEADER -->
+    <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-indigo-700 p-2 rounded-xl shadow-md font-black text-xl flex items-center justify-center">
+                    🧪
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight">ChemCompare Pro 7P</h1>
+                    <p class="text-xs text-indigo-200 font-medium">Bảng Tuần Hoàn Đầy Đủ Các Nguyên Tố Nhóm A (Chu Kỳ 1 - 7)</p>
+                </div>
+            </div>
+
+            <!-- TAB MENU -->
+            <nav class="site-nav flex bg-indigo-800/60 p-1 rounded-xl gap-1" aria-label="Chức năng học tập">
+                <button id="tab-btn-compare" onclick="switchTab('compare')" class="tab-btn px-3.5 py-1.5 rounded-lg font-bold text-xs sm:text-sm bg-white text-indigo-800 shadow-sm transition-all flex items-center gap-1.5">
+                    🔍 So Sánh Nguyên Tố
+                </button>
+                <button id="tab-btn-game" onclick="switchTab('game')" class="tab-btn px-3.5 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-indigo-100 hover:text-white transition-all flex items-center gap-1.5">
+                    🎮 Trò Chơi Sắp Xếp
+                </button>
+                <button id="tab-btn-quiz" onclick="switchTab('quiz')" class="tab-btn px-3.5 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-indigo-100 hover:text-white transition-all flex items-center gap-1.5">
+                    📝 Trắc Nghiệm
+                </button>
+                <button id="tab-btn-passport" onclick="switchTab('passport')" class="tab-btn px-3.5 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-indigo-100 hover:text-white transition-all flex items-center gap-1.5">
+                    🛂 Hộ Chiếu Nguyên Tố
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl w-full mx-auto px-3 sm:px-6 py-5 flex-grow space-y-6">
+
+        <!-- ==================== TAB 1: SO SÁNH NGUYÊN TỐ ==================== -->
+        <section id="tab-compare" class="space-y-6">
+            
+            <!-- BẢNG TUẦN HOÀN 7 CHU KỲ NHÓM A -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div>
+                        <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+                            <span>📌</span> Bảng Tuần Hoàn Nhóm A Đầy Đủ (7 Chu Kỳ)
+                        </h2>
+                        <p class="text-xs text-slate-500 font-medium">Bấm trực tiếp vào các ô nguyên tố từ Chu kỳ 1 đến Chu kỳ 7 để chọn so sánh!</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="clearSelection()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-3 py-1.5 rounded-lg border border-rose-200 transition-colors">
+                            🗑 Bỏ chọn tất cả
+                        </button>
+                        <span id="selected-badge" class="text-xs bg-indigo-100 text-indigo-800 font-extrabold px-3 py-1.5 rounded-lg border border-indigo-200">
+                            Đã chọn: 3 nguyên tố
+                        </span>
+                    </div>
+                </div>
+
+                <!-- BỘ CHỌN NHANH -->
+                <div class="flex items-center gap-2 flex-wrap text-xs">
+                    <span class="font-bold text-slate-400 uppercase">Gợi ý so sánh nhanh:</span>
+                    <button onclick="applyPreset(['Li','Na','K','Rb','Cs','Fr'])" class="font-bold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2.5 py-1 rounded-md transition-colors">Nhóm IA (Kiềm Cả 7 CK)</button>
+                    <button onclick="applyPreset(['Be','Mg','Ca','Sr','Ba','Ra'])" class="font-bold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2.5 py-1 rounded-md transition-colors">Nhóm IIA (Kiềm Thổ)</button>
+                    <button onclick="applyPreset(['F','Cl','Br','I','At','Ts'])" class="font-bold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2.5 py-1 rounded-md transition-colors">Nhóm VIIA (Halogen)</button>
+                    <button onclick="applyPreset(['Na','Mg','Al','Si','P','S','Cl'])" class="font-bold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2.5 py-1 rounded-md transition-colors">Trọn Chu kỳ 3</button>
+                    <button onclick="applyPreset(['Na','Mg','K','Cs','Fr'])" class="font-bold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-md transition-colors">⭐ Chéo Đa Chu Kỳ (Na-Mg-K-Cs-Fr)</button>
+                </div>
+
+                <!-- LƯỚI BẢNG TUẦN HOÀN 7 CHU KỲ NHÓM A -->
+                <div class="overflow-x-auto custom-scrollbar pt-1 pb-2">
+                    <div class="min-w-[760px] space-y-1">
+                        <!-- HEADER CÁC NHÓM A -->
+                        <div class="grid grid-cols-9 gap-1 text-center text-[11px] font-extrabold text-slate-500 mb-1">
+                            <div class="py-1">CK \ Nhóm</div>
+                            <div class="py-1 bg-blue-50 text-blue-700 rounded-md">IA</div>
+                            <div class="py-1 bg-blue-50 text-blue-700 rounded-md">IIA</div>
+                            <div class="py-1 bg-amber-50 text-amber-700 rounded-md">IIIA</div>
+                            <div class="py-1 bg-amber-50 text-amber-700 rounded-md">IVA</div>
+                            <div class="py-1 bg-amber-50 text-amber-700 rounded-md">VA</div>
+                            <div class="py-1 bg-amber-50 text-amber-700 rounded-md">VIA</div>
+                            <div class="py-1 bg-emerald-50 text-emerald-700 rounded-md">VIIA</div>
+                            <div class="py-1 bg-slate-200 text-slate-700 rounded-md">VIIIA</div>
+                        </div>
+
+                        <!-- BODY 7 CHU KỲ -->
+                        <div id="full-ptable" class="space-y-1">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KẾT QUẢ SO SÁNH & PHÂN TÍCH -->
+            <div id="compare-results" class="space-y-6">
+
+                <!-- 1. GIẢI THÍCH QUY LUẬT BẢN CHẤT -->
+                <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-5 shadow-sm space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">✨</span>
+                        <h3 class="text-base font-extrabold text-amber-300 uppercase tracking-wider">Phân Tích Bản Chất Quy Luật Tuần Hoàn</h3>
+                    </div>
+                    <h4 id="relation-title" class="text-lg font-black text-white">...</h4>
+                    <p id="relation-desc" class="text-xs sm:text-sm text-indigo-100 leading-relaxed font-light"></p>
+                </div>
+
+                <!-- 2. CẤU HÌNH ELECTRON VÀ NGUYÊN TỬ -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2 border-b border-slate-100 pb-2">
+                        <span>⚡</span> Cấu Hình Electron & Lớp Electron Hóa Trị
+                    </h3>
+                    <div id="electron-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- 3. BIỂU ĐỒ TRỰC QUAN (CSS BAR CHARTS) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- BÁN KÍNH -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <h4 class="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                                📏 Bán Kính Nguyên Tử (pm)
+                            </h4>
+                            <span class="text-[10px] text-slate-400 font-medium">Càng dài = Bán kính càng lớn</span>
+                        </div>
+                        <div id="chart-radius-css" class="space-y-2 pt-1">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- ĐỘ ÂM ĐIỆN -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <h4 class="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                                ⚡ Độ Âm Điện (Pauling)
+                            </h4>
+                            <span class="text-[10px] text-slate-400 font-medium">Càng dài = Lực hút e càng mạnh</span>
+                        </div>
+                        <div id="chart-electro-css" class="space-y-2 pt-1">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. BẢNG TÍNH CHẤT NGUYÊN TỐ, OXIDE & HYDROXIDE -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 font-extrabold text-slate-800 text-base">
+                        🧪 Bảng So Sánh Chi Tiết Tính Chất, Oxide Cao Nhất & Hydroxide
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-xs text-left border-collapse min-w-[700px]">
+                            <thead class="bg-slate-50 font-bold text-slate-600 uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Nguyên tố</th>
+                                    <th class="p-3">Vị trí</th>
+                                    <th class="p-3">Đặc tính</th>
+                                    <th class="p-3">Oxide Cao Nhất</th>
+                                    <th class="p-3">Hydroxide Tương Ứng</th>
+                                    <th class="p-3">Tính Acid / Base</th>
+                                </tr>
+                            </thead>
+                            <tbody id="compare-table-body" class="divide-y divide-slate-100">
+                                <!-- Rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: TRÒ CHƠI SẮP XẾP ==================== -->
+        <section id="tab-game" class="hidden space-y-6 max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                        <span class="px-3 py-1 bg-amber-100 text-amber-800 font-extrabold text-xs rounded-full">TRÒ CHƠI KÉO / DỊCH CHUYỂN</span>
+                        <h2 class="text-xl font-black text-slate-800 mt-1">Sắp Xếp Thứ Tự Quy Luật Tuần Hoàn</h2>
+                        <p class="text-xs text-slate-500 font-medium">Nhấn nút ◄ Trái hoặc Phải ► để thay đổi vị trí các thẻ nguyên tố!</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl text-center">
+                            <span class="text-[10px] text-amber-700 font-bold block">ĐIỂM SỐ</span>
+                            <span id="game-score" class="text-xl font-black text-amber-600">0</span>
+                        </div>
+                        <button onclick="initGameRound()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">
+                            🔄 Đổi Đề Mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ĐỀ BÀI -->
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center space-y-1">
+                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Yêu cầu đề bài:</span>
+                    <h3 id="game-prompt" class="text-base font-extrabold text-indigo-950">
+                        ...
+                    </h3>
+                </div>
+
+                <!-- DANH SÁCH THẺ THAO TÁC DỄ DÀNG -->
+                <div id="game-cards-container" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="flex flex-col items-center space-y-3 pt-2">
+                    <div class="flex gap-3">
+                        <button onclick="showGameHint()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors">
+                            💡 Xem Gợi Ý
+                        </button>
+                        <button onclick="checkGameAnswer()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-sm shadow-md transition-all">
+                            ✅ KIỂM TRA ĐÁP ÁN
+                        </button>
+                    </div>
+
+                    <div id="game-result-box" class="hidden w-full p-4 rounded-xl text-xs font-bold text-center space-y-1">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: TRẮC NGHIỆM ==================== -->
+        <section id="tab-quiz" class="hidden space-y-6 max-w-3xl mx-auto">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                
+                <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <div>
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 font-extrabold text-xs rounded-full">TRẮC NGHIỆM</span>
+                        <h2 class="text-lg font-black text-slate-800 mt-1">Luyện Tập Kiểm Tra Kiến Thức</h2>
+                    </div>
+                    <span id="quiz-progress-badge" class="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200">
+                        Câu 1 / 5
+                    </span>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 id="quiz-question-text" class="text-base font-extrabold text-slate-800 leading-snug">
+                        ...
+                    </h3>
+
+                    <div id="quiz-options-container" class="space-y-2.5">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <div id="quiz-explanation" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs space-y-1">
+                    <div class="font-bold text-slate-800" id="quiz-explain-status"></div>
+                    <p class="text-slate-600 leading-relaxed" id="quiz-explain-text"></p>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <button onclick="prevQuizQuestion()" id="btn-quiz-prev" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">
+                        ◄ Câu Trước
+                    </button>
+                    <button onclick="nextQuizQuestion()" id="btn-quiz-next" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs">
+                        Câu Tiếp ►
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- HỘ CHIẾU CỦA 20 NGUYÊN TỐ ĐẦU TIÊN -->
+        <section id="tab-passport" class="hidden space-y-5" aria-labelledby="passport-heading">
+            <div>
+                <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Khám phá từ H đến Ca</p>
+                <h2 id="passport-heading" class="text-2xl sm:text-3xl font-extrabold text-slate-800">Hộ chiếu nguyên tố</h2>
+                <p class="text-sm text-slate-500 mt-2">Chọn một trong 20 nguyên tố đầu tiên để xem hộ chiếu và khám phá đặc điểm, tính chất, ứng dụng.</p>
+            </div>
+            <div class="passport-layout">
+                <div class="passport-panel">
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <h3 class="text-sm font-extrabold">Chọn nguyên tố</h3>
+                        <span class="text-xs text-slate-500">Số hiệu 1–20</span>
+                    </div>
+                    <div id="passport-elements" class="passport-grid" role="group" aria-label="20 nguyên tố đầu tiên"></div>
+                    <p class="text-xs text-slate-500 mt-4 leading-relaxed">Số nhỏ phía trên ký hiệu là số hiệu nguyên tử. Ô màu tím là nguyên tố đang xem.</p>
+                </div>
+                <article id="passport-viewer" class="passport-panel passport-viewer" aria-labelledby="passport-element-title">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div aria-live="polite" aria-atomic="true">
+                            <p id="passport-position" class="text-xs font-bold text-indigo-600 mb-1"></p>
+                            <h3 id="passport-element-title" class="text-xl font-extrabold"></h3>
+                        </div>
+                    </div>
+                    <dl class="passport-facts">
+                        <div><dt>Nhóm</dt><dd id="passport-group"></dd></div>
+                        <div><dt>Chu kỳ</dt><dd id="passport-period"></dd></div>
+                        <div><dt>Phân loại</dt><dd id="passport-type"></dd></div>
+                    </dl>
+                    <figure class="bg-slate-50 rounded-xl p-1 sm:p-3 border border-slate-100">
+                        <img id="passport-image" class="passport-image" decoding="async" alt="">
+                        <figcaption class="text-center text-xs text-slate-500 px-2 pt-3 pb-2">Ảnh hộ chiếu từ tài liệu HỘ CHIẾU NGUYÊN TỐ.</figcaption>
+                    </figure>
+                    <div class="flex justify-between gap-3 mt-4">
+                        <button id="passport-prev" class="passport-action" onclick="stepPassport(-1)">← Nguyên tố trước</button>
+                        <button id="passport-next" class="passport-action" onclick="stepPassport(1)">Nguyên tố tiếp →</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 font-medium">
+        ChemCompare Pro 7P - Dữ liệu Bảng Tuần Hoàn Nhóm A Chu Kỳ 1 đến 7.
+    </footer>
+
+    <!-- JS LOGIC DATABASES & ALGORITHMS -->
+    <script>
+        /* ==========================================================================
+           DATABASE 7 CHU KỲ TẤT CẢ CÁC NGUYÊN TỐ NHÓM A (IA - VIIIA)
+           ========================================================================== */
+        const MAIN_ELEMENTS = {
+            // CHU KỲ 1
+            "H":  { z: 1,  name: "Hydrogen", group: "IA",  period: 1, radius: 37,  electronegativity: 2.20, type: "Phi kim", oxide: "H₂O", hydroxide: "H₂O", nature: "Trung tính", config: "1s¹", shortConfig: "1s¹", valenceE: 1 },
+            "He": { z: 2,  name: "Helium",   group: "VIIIA",period: 1, radius: 31,  electronegativity: 0.00, type: "Khí hiếm", oxide: "-", hydroxide: "-", nature: "Trơ", config: "1s²", shortConfig: "1s²", valenceE: 2 },
+            
+            // CHU KỲ 2
+            "Li": { z: 3,  name: "Lithium",  group: "IA",  period: 2, radius: 152, electronegativity: 0.98, type: "Kim loại", oxide: "Li₂O", hydroxide: "LiOH", nature: "Base mạnh", config: "1s² 2s¹", shortConfig: "[He] 2s¹", valenceE: 1 },
+            "Be": { z: 4,  name: "Beryllium",group: "IIA", period: 2, radius: 112, electronegativity: 1.57, type: "Kim loại", oxide: "BeO", hydroxide: "Be(OH)₂", nature: "Lưỡng tính", config: "1s² 2s²", shortConfig: "[He] 2s²", valenceE: 2 },
+            "B":  { z: 5,  name: "Boron",    group: "IIIA",period: 2, radius: 85,  electronegativity: 2.04, type: "Bán kim loại", oxide: "B₂O₃", hydroxide: "H₃BO₃", nature: "Acid rất yếu", config: "1s² 2s² 2p¹", shortConfig: "[He] 2s² 2p¹", valenceE: 3 },
+            "C":  { z: 6,  name: "Carbon",   group: "IVA", period: 2, radius: 77,  electronegativity: 2.55, type: "Phi kim", oxide: "CO₂", hydroxide: "H₂CO₃", nature: "Acid yếu", config: "1s² 2s² 2p²", shortConfig: "[He] 2s² 2p²", valenceE: 4 },
+            "N":  { z: 7,  name: "Nitrogen", group: "VA",  period: 2, radius: 75,  electronegativity: 3.04, type: "Phi kim", oxide: "N₂O₅", hydroxide: "HNO₃", nature: "Acid rất mạnh", config: "1s² 2s² 2p³", shortConfig: "[He] 2s² 2p³", valenceE: 5 },
+            "O":  { z: 8,  name: "Oxygen",   group: "VIA", period: 2, radius: 73,  electronegativity: 3.44, type: "Phi kim mạnh", oxide: "-", hydroxide: "-", nature: "Phi kim mạnh", config: "1s² 2s² 2p⁴", shortConfig: "[He] 2s² 2p⁴", valenceE: 6 },
+            "F":  { z: 9,  name: "Fluorine", group: "VIIA",period: 2, radius: 71,  electronegativity: 3.98, type: "Phi kim mạnh nhất", oxide: "F₂O", hydroxide: "-", nature: "Phi kim cực mạnh", config: "1s² 2s² 2p⁵", shortConfig: "[He] 2s² 2p⁵", valenceE: 7 },
+            "Ne": { z: 10, name: "Neon",     group: "VIIIA",period: 2, radius: 38,  electronegativity: 0.00, type: "Khí hiếm", oxide: "-", hydroxide: "-", nature: "Trơ", config: "1s² 2s² 2p⁶", shortConfig: "[He] 2s² 2p⁶", valenceE: 8 },
+
+            // CHU KỲ 3
+            "Na": { z: 11, name: "Sodium",   group: "IA",  period: 3, radius: 186, electronegativity: 0.93, type: "Kim loại mạnh", oxide: "Na₂O", hydroxide: "NaOH", nature: "Base rất mạnh", config: "[Ne] 3s¹", shortConfig: "[Ne] 3s¹", valenceE: 1 },
+            "Mg": { z: 12, name: "Magnesium",group: "IIA", period: 3, radius: 160, electronegativity: 1.31, type: "Kim loại", oxide: "MgO", hydroxide: "Mg(OH)₂", nature: "Base trung bình", config: "[Ne] 3s²", shortConfig: "[Ne] 3s²", valenceE: 2 },
+            "Al": { z: 13, name: "Aluminum", group: "IIIA",period: 3, radius: 143, electronegativity: 1.61, type: "Kim loại", oxide: "Al₂O₃", hydroxide: "Al(OH)₃", nature: "Lưỡng tính", config: "[Ne] 3s² 3p¹", shortConfig: "[Ne] 3s² 3p¹", valenceE: 3 },
+            "Si": { z: 14, name: "Silicon",  group: "IVA", period: 3, radius: 118, electronegativity: 1.90, type: "Bán kim loại", oxide: "SiO₂", hydroxide: "H₂SiO₃", nature: "Acid yếu", config: "[Ne] 3s² 3p²", shortConfig: "[Ne] 3s² 3p²", valenceE: 4 },
+            "P":  { z: 15, name: "Phosphorus",group: "VA", period: 3, radius: 110, electronegativity: 2.19, type: "Phi kim", oxide: "P₂O₅", hydroxide: "H₃PO₄", nature: "Acid trung bình", config: "[Ne] 3s² 3p³", shortConfig: "[Ne] 3s² 3p³", valenceE: 5 },
+            "S":  { z: 16, name: "Sulfur",    group: "VIA", period: 3, radius: 103, electronegativity: 2.58, type: "Phi kim", oxide: "SO₃", hydroxide: "H₂SO₄", nature: "Acid mạnh", config: "[Ne] 3s² 3p⁴", shortConfig: "[Ne] 3s² 3p⁴", valenceE: 6 },
+            "Cl": { z: 17, name: "Chlorine", group: "VIIA",period: 3, radius: 99,  electronegativity: 3.16, type: "Phi kim mạnh", oxide: "Cl₂O₇", hydroxide: "HClO₄", nature: "Acid rất mạnh", config: "[Ne] 3s² 3p⁵", shortConfig: "[Ne] 3s² 3p⁵", valenceE: 7 },
+            "Ar": { z: 18, name: "Argon",    group: "VIIIA",period: 3, radius: 71,  electronegativity: 0.00, type: "Khí hiếm", oxide: "-", hydroxide: "-", nature: "Trơ", config: "[Ne] 3s² 3p⁶", shortConfig: "[Ne] 3s² 3p⁶", valenceE: 8 },
+
+            // CHU KỲ 4
+            "K":  { z: 19, name: "Potassium",group: "IA",  period: 4, radius: 227, electronegativity: 0.82, type: "Kim loại mạnh", oxide: "K₂O", hydroxide: "KOH", nature: "Base rất mạnh", config: "[Ar] 4s¹", shortConfig: "[Ar] 4s¹", valenceE: 1 },
+            "Ca": { z: 20, name: "Calcium",  group: "IIA", period: 4, radius: 197, electronegativity: 1.00, type: "Kim loại", oxide: "CaO", hydroxide: "Ca(OH)₂", nature: "Base mạnh", config: "[Ar] 4s²", shortConfig: "[Ar] 4s²", valenceE: 2 },
+            "Ga": { z: 31, name: "Gallium",  group: "IIIA",period: 4, radius: 135, electronegativity: 1.81, type: "Kim loại", oxide: "Ga₂O₃", hydroxide: "Ga(OH)₃", nature: "Lưỡng tính", config: "[Ar] 3d¹⁰ 4s² 4p¹", shortConfig: "[Ar] 4s² 4p¹", valenceE: 3 },
+            "Ge": { z: 32, name: "Germanium",group: "IVA", period: 4, radius: 122, electronegativity: 2.01, type: "Bán kim loại", oxide: "GeO₂", hydroxide: "H₂GeO₃", nature: "Acid yếu", config: "[Ar] 3d¹⁰ 4s² 4p²", shortConfig: "[Ar] 4s² 4p²", valenceE: 4 },
+            "As": { z: 33, name: "Arsenic",  group: "VA",  period: 4, radius: 120, electronegativity: 2.18, type: "Bán kim loại", oxide: "As₂O₅", hydroxide: "H₃AsO₄", nature: "Acid yếu", config: "[Ar] 3d¹⁰ 4s² 4p³", shortConfig: "[Ar] 4s² 4p³", valenceE: 5 },
+            "Se": { z: 34, name: "Selenium", group: "VIA", period: 4, radius: 117, electronegativity: 2.55, type: "Phi kim", oxide: "SeO₃", hydroxide: "H₂SeO₄", nature: "Acid mạnh", config: "[Ar] 3d¹⁰ 4s² 4p⁴", shortConfig: "[Ar] 4s² 4p⁴", valenceE: 6 },
+            "Br": { z: 35, name: "Bromine",  group: "VIIA",period: 4, radius: 114, electronegativity: 2.96, type: "Phi kim mạnh", oxide: "Br₂O₇", hydroxide: "HBrO₄", nature: "Acid rất mạnh", config: "[Ar] 3d¹⁰ 4s² 4p⁵", shortConfig: "[Ar] 4s² 4p⁵", valenceE: 7 },
+            "Kr": { z: 36, name: "Krypton",  group: "VIIIA",period: 4, radius: 88,  electronegativity: 0.00, type: "Khí hiếm", oxide: "-", hydroxide: "-", nature: "Trơ", config: "[Ar] 3d¹⁰ 4s² 4p⁶", shortConfig: "[Ar] 4s² 4p⁶", valenceE: 8 },
+
+            // CHU KỲ 5
+            "Rb": { z: 37, name: "Rubidium", group: "IA",  period: 5, radius: 248, electronegativity: 0.82, type: "Kim loại mạnh", oxide: "Rb₂O", hydroxide: "RbOH", nature: "Base rất mạnh", config: "[Kr] 5s¹", shortConfig: "[Kr] 5s¹", valenceE: 1 },
+            "Sr": { z: 38, name: "Strontium",group: "IIA", period: 5, radius: 215, electronegativity: 0.95, type: "Kim loại", oxide: "SrO", hydroxide: "Sr(OH)₂", nature: "Base mạnh", config: "[Kr] 5s²", shortConfig: "[Kr] 5s²", valenceE: 2 },
+            "In": { z: 49, name: "Indium",   group: "IIIA",period: 5, radius: 167, electronegativity: 1.78, type: "Kim loại", oxide: "In₂O₃", hydroxide: "In(OH)₃", nature: "Base yếu", config: "[Kr] 4d¹⁰ 5s² 5p¹", shortConfig: "[Kr] 5s² 5p¹", valenceE: 3 },
+            "Sn": { z: 50, name: "Tin",      group: "IVA", period: 5, radius: 140, electronegativity: 1.96, type: "Kim loại", oxide: "SnO₂", hydroxide: "H₂SnO₃", nature: "Lưỡng tính", config: "[Kr] 4d¹⁰ 5s² 5p²", shortConfig: "[Kr] 5s² 5p²", valenceE: 4 },
+            "Sb": { z: 51, name: "Antimony", group: "VA",  period: 5, radius: 140, electronegativity: 2.05, type: "Bán kim loại", oxide: "Sb₂O₅", hydroxide: "H₃SbO₄", nature: "Acid yếu", config: "[Kr] 4d¹⁰ 5s² 5p³", shortConfig: "[Kr] 5s² 5p³", valenceE: 5 },
+            "Te": { z: 52, name: "Tellurium",group: "VIA", period: 5, radius: 142, electronegativity: 2.10, type: "Bán kim loại", oxide: "TeO₃", hydroxide: "H₂TeO₄", nature: "Acid yếu", config: "[Kr] 4d¹⁰ 5s² 5p⁴", shortConfig: "[Kr] 5s² 5p⁴", valenceE: 6 },
+            "I":  { z: 53, name: "Iodine",   group: "VIIA",period: 5, radius: 133, electronegativity: 2.66, type: "Phi kim", oxide: "I₂O₇", hydroxide: "HIO₄", nature: "Acid mạnh", config: "[Kr] 4d¹⁰ 5s² 5p⁵", shortConfig: "[Kr] 5s² 5p⁵", valenceE: 7 },
+            "Xe": { z: 54, name: "Xenon",    group: "VIIIA",period: 5, radius: 108, electronegativity: 2.60, type: "Khí hiếm", oxide: "-", hydroxide: "-", nature: "Trơ", config: "[Kr] 4d¹⁰ 5s² 5p⁶", shortConfig: "[Kr] 5s² 5p⁶", valenceE: 8 },
+
+            // CHU KỲ 6
+            "Cs": { z: 55, name: "Cesium",   group: "IA",  period: 6, radius: 265, electronegativity: 0.79, type: "Kim loại cực mạnh", oxide: "Cs₂O", hydroxide: "CsOH", nature: "Base cực mạnh", config: "[Xe] 6s¹", shortConfig: "[Xe] 6s¹", valenceE: 1 },
+            "Ba": { z: 56, name: "Barium",   group: "IIA", period: 6, radius: 222, electronegativity: 0.89, type: "Kim loại mạnh", oxide: "BaO", hydroxide: "Ba(OH)₂", nature: "Base rất mạnh", config: "[Xe] 6s²", shortConfig: "[Xe] 6s²", valenceE: 2 },
+            "Tl": { z: 81, name: "Thallium", group: "IIIA",period: 6, radius: 170, electronegativity: 1.62, type: "Kim loại", oxide: "Tl₂O₃", hydroxide: "Tl(OH)₃", nature: "Base yếu", config: "[Xe] ... 6s² 6p¹", shortConfig: "[Xe] 6s² 6p¹", valenceE: 3 },
+            "Pb": { z: 82, name: "Lead",     group: "IVA", period: 6, radius: 175, electronegativity: 2.33, type: "Kim loại", oxide: "PbO₂", hydroxide: "Pb(OH)₄", nature: "Lưỡng tính", config: "[Xe] ... 6s² 6p²", shortConfig: "[Xe] 6s² 6p²", valenceE: 4 },
+            "Bi": { z: 83, name: "Bismuth",  group: "VA",  period: 6, radius: 156, electronegativity: 2.02, type: "Kim loại", oxide: "Bi₂O₅", hydroxide: "Bi(OH)₃", nature: "Base yếu", config: "[Xe] ... 6s² 6p³", shortConfig: "[Xe] 6s² 6p³", valenceE: 5 },
+            "Po": { z: 84, name: "Polonium", group: "VIA", period: 6, radius: 168, electronegativity: 2.00, type: "Kim loại phóng xạ", oxide: "PoO₃", hydroxide: "-", nature: "Lưỡng tính", config: "[Xe] ... 6s² 6p⁴", shortConfig: "[Xe] 6s² 6p⁴", valenceE: 6 },
+            "At": { z: 85, name: "Astatine", group: "VIIA",period: 6, radius: 140, electronegativity: 2.20, type: "Bán kim phóng xạ", oxide: "At₂O₇", hydroxide: "HAtO₄", nature: "Acid", config: "[Xe] ... 6s² 6p⁵", shortConfig: "[Xe] 6s² 6p⁵", valenceE: 7 },
+            "Rn": { z: 86, name: "Radon",    group: "VIIIA",period: 6, radius: 120, electronegativity: 0.00, type: "Khí hiếm phóng xạ", oxide: "-", hydroxide: "-", nature: "Trơ", config: "[Xe] ... 6s² 6p⁶", shortConfig: "[Xe] 6s² 6p⁶", valenceE: 8 },
+
+            // CHU KỲ 7
+            "Fr": { z: 87, name: "Francium", group: "IA",  period: 7, radius: 280, electronegativity: 0.70, type: "Kim loại phóng xạ", oxide: "Fr₂O", hydroxide: "FrOH", nature: "Base cực mạnh", config: "[Rn] 7s¹", shortConfig: "[Rn] 7s¹", valenceE: 1 },
+            "Ra": { z: 88, name: "Radium",   group: "IIA", period: 7, radius: 235, electronegativity: 0.90, type: "Kim loại phóng xạ", oxide: "RaO", hydroxide: "Ra(OH)₂", nature: "Base rất mạnh", config: "[Rn] 7s²", shortConfig: "[Rn] 7s²", valenceE: 2 },
+            "Nh": { z: 113, name: "Nihonium", group: "IIIA",period: 7, radius: 170, electronegativity: 0.00, type: "Kim loại nhân tạo", oxide: "-", hydroxide: "-", nature: "Chưa xác định", config: "[Rn] ... 7s² 7p¹", shortConfig: "[Rn] 7s² 7p¹", valenceE: 3 },
+            "Fl": { z: 114, name: "Flerovium",group: "IVA", period: 7, radius: 180, electronegativity: 0.00, type: "Kim loại nhân tạo", oxide: "-", hydroxide: "-", nature: "Chưa xác định", config: "[Rn] ... 7s² 7p²", shortConfig: "[Rn] 7s² 7p²", valenceE: 4 },
+            "Mc": { z: 115, name: "Moscovium",group: "VA",  period: 7, radius: 175, electronegativity: 0.00, type: "Kim loại nhân tạo", oxide: "-", hydroxide: "-", nature: "Chưa xác định", config: "[Rn] ... 7s² 7p³", shortConfig: "[Rn] 7s² 7p³", valenceE: 5 },
+            "Lv": { z: 116, name: "Livermorium",group:"VIA",period: 7, radius: 175, electronegativity: 0.00, type: "Kim loại nhân tạo", oxide: "-", hydroxide: "-", nature: "Chưa xác định", config: "[Rn] ... 7s² 7p⁴", shortConfig: "[Rn] 7s² 7p⁴", valenceE: 6 },
+            "Ts": { z: 117, name: "Tennessine",group:"VIIA",period: 7, radius: 165, electronegativity: 0.00, type: "Nhân tạo", oxide: "-", hydroxide: "-", nature: "Chưa xác định", config: "[Rn] ... 7s² 7p⁵", shortConfig: "[Rn] 7s² 7p⁵", valenceE: 7 },
+            "Og": { z: 118, name: "Oganesson", group:"VIIIA",period:7, radius: 152, electronegativity: 0.00, type: "Khí hiếm nhân tạo", oxide: "-", hydroxide: "-", nature: "Trơ", config: "[Rn] ... 7s² 7p⁶", shortConfig: "[Rn] 7s² 7p⁶", valenceE: 8 }
+        };
+
+        // LAYOUT 7 CHU KỲ BẢNG TUẦN HOÀN (NHÓM IA - VIIIA)
+        const PTABLE_7P_LAYOUT = [
+            { period: 1, elements: ["H", null, null, null, null, null, null, "He"] },
+            { period: 2, elements: ["Li", "Be", "B", "C", "N", "O", "F", "Ne"] },
+            { period: 3, elements: ["Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar"] },
+            { period: 4, elements: ["K", "Ca", "Ga", "Ge", "As", "Se", "Br", "Kr"] },
+            { period: 5, elements: ["Rb", "Sr", "In", "Sn", "Sb", "Te", "I", "Xe"] },
+            { period: 6, elements: ["Cs", "Ba", "Tl", "Pb", "Bi", "Po", "At", "Rn"] },
+            { period: 7, elements: ["Fr", "Ra", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"] }
+        ];
+
+        let selectedElements = ["Na", "Mg", "K"];
+
+        /* ==========================================================================
+           TAB SWITCHING
+           ========================================================================== */
+        function switchTab(tabId) {
+            document.querySelectorAll('section[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-3.5 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-indigo-100 hover:text-white transition-all flex items-center gap-1.5";
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.className = "tab-btn px-3.5 py-1.5 rounded-lg font-bold text-xs sm:text-sm bg-white text-indigo-800 shadow-sm transition-all flex items-center gap-1.5";
+
+            if (tabId === 'game' && gameCurrentElements.length === 0) {
+                initGameRound();
+            } else if (tabId === 'quiz' && document.getElementById('quiz-options-container').children.length === 0) {
+                initQuiz();
+            } else if (tabId === 'passport' && document.getElementById('passport-elements').children.length === 0) {
+                initPassports();
+            }
+        }
+
+        const PASSPORT_ELEMENTS = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"];
+        let currentPassportIndex = 0;
+
+        function initPassports() {
+            const container = document.getElementById('passport-elements');
+            PASSPORT_ELEMENTS.forEach((symbol, index) => {
+                const element = MAIN_ELEMENTS[symbol];
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'passport-choice';
+                button.setAttribute('aria-label', `${element.z}. ${element.name} (${symbol})`);
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-controls', 'passport-viewer');
+                button.innerHTML = `<span class="passport-number">${element.z}</span><span class="passport-symbol">${symbol}</span><span class="passport-name">${element.name}</span>`;
+                button.onclick = () => selectPassport(index, true);
+                container.appendChild(button);
+            });
+            selectPassport(currentPassportIndex);
+        }
+
+        function selectPassport(index, scrollToPassport = false) {
+            if (index < 0 || index >= PASSPORT_ELEMENTS.length) return;
+            currentPassportIndex = index;
+            const symbol = PASSPORT_ELEMENTS[index];
+            const element = MAIN_ELEMENTS[symbol];
+            const imagePath = `assets/passports/${symbol}.jpg`;
+            document.querySelectorAll('#passport-elements button').forEach((button, buttonIndex) => {
+                button.setAttribute('aria-pressed', String(buttonIndex === index));
+            });
+            document.getElementById('passport-position').textContent = `Hộ chiếu ${index + 1} / ${PASSPORT_ELEMENTS.length} · Z = ${element.z}`;
+            document.getElementById('passport-element-title').textContent = `${symbol} · ${element.name}`;
+            document.getElementById('passport-group').textContent = element.group;
+            document.getElementById('passport-period').textContent = element.period;
+            document.getElementById('passport-type').textContent = element.type;
+            const image = document.getElementById('passport-image');
+            image.alt = `Hộ chiếu nguyên tố ${element.name} (${symbol}), số hiệu nguyên tử ${element.z}`;
+            image.src = imagePath;
+            document.getElementById('passport-prev').disabled = index === 0;
+            document.getElementById('passport-next').disabled = index === PASSPORT_ELEMENTS.length - 1;
+            if (scrollToPassport && window.matchMedia('(max-width: 767px)').matches) {
+                document.getElementById('passport-viewer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function stepPassport(direction) {
+            selectPassport(currentPassportIndex + direction);
+        }
+
+        /* ==========================================================================
+           RENDER FULL 7 PERIODS TABLE
+           ========================================================================== */
+        function renderFullPTable() {
+            const container = document.getElementById('full-ptable');
+            container.innerHTML = '';
+
+            PTABLE_7P_LAYOUT.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = "grid grid-cols-9 gap-1 items-center";
+
+                // Nhãn Chu kỳ
+                const pLabel = document.createElement('div');
+                pLabel.className = "text-center font-extrabold text-xs text-indigo-700 bg-slate-200/70 py-2 rounded-md border border-slate-300";
+                pLabel.innerText = `CK ${row.period}`;
+                rowDiv.appendChild(pLabel);
+
+                row.elements.forEach(sym => {
+                    if (!sym) {
+                        const emptyCell = document.createElement('div');
+                        emptyCell.className = "h-11 bg-slate-50/50 rounded-lg border border-dashed border-slate-200/60";
+                        rowDiv.appendChild(emptyCell);
+                    } else {
+                        const el = MAIN_ELEMENTS[sym];
+                        const isSelected = selectedElements.includes(sym);
+                        const cell = document.createElement('button');
+                        cell.onclick = () => toggleElement(sym);
+
+                        let typeBg = "bg-blue-50 border-blue-200 text-blue-900";
+                        if (el.type.includes("Phi kim")) typeBg = "bg-emerald-50 border-emerald-200 text-emerald-900";
+                        if (el.type.includes("Bán kim")) typeBg = "bg-amber-50 border-amber-200 text-amber-900";
+                        if (el.type.includes("Khí hiếm")) typeBg = "bg-slate-100 border-slate-300 text-slate-700";
+                        if (el.type.includes("phóng xạ") || el.type.includes("nhân tạo")) typeBg = "bg-purple-50 border-purple-200 text-purple-900";
+
+                        cell.className = `h-11 p-1 rounded-lg border flex flex-col justify-between items-center transition-all ${
+                            isSelected 
+                            ? 'bg-indigo-600 border-indigo-700 text-white shadow-md ring-2 ring-indigo-300 scale-105 z-10' 
+                            : `${typeBg} hover:border-indigo-400 hover:scale-95`
+                        }`;
+
+                        cell.innerHTML = `
+                            <span class="text-[8px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'} font-extrabold leading-none">${el.z}</span>
+                            <span class="text-xs font-black leading-none">${sym}</span>
+                            <span class="text-[8px] ${isSelected ? 'text-indigo-200' : 'text-slate-500'} font-semibold leading-none">${el.group}</span>
+                        `;
+                        rowDiv.appendChild(cell);
+                    }
+                });
+
+                container.appendChild(rowDiv);
+            });
+        }
+
+        function toggleElement(sym) {
+            if (selectedElements.includes(sym)) {
+                if (selectedElements.length <= 1) return;
+                selectedElements = selectedElements.filter(s => s !== sym);
+            } else {
+                selectedElements.push(sym);
+            }
+            selectedElements.sort((a, b) => MAIN_ELEMENTS[a].z - MAIN_ELEMENTS[b].z);
+            updateCompareTab();
+        }
+
+        function applyPreset(arr) {
+            selectedElements = [...arr];
+            updateCompareTab();
+        }
+
+        function clearSelection() {
+            selectedElements = ["Na", "Mg"];
+            updateCompareTab();
+        }
+
+        /* ==========================================================================
+           RENDER COMPARES & EXPLANATIONS
+           ========================================================================== */
+        function updateCompareTab() {
+            renderFullPTable();
+            document.getElementById('selected-badge').innerText = `Đã chọn: ${selectedElements.length} nguyên tố`;
+
+            renderRelationshipAnalysis();
+            renderElectronCards();
+            renderCSSCharts();
+            renderCompareTable();
+        }
+
+        function renderRelationshipAnalysis() {
+            const title = document.getElementById('relation-title');
+            const desc = document.getElementById('relation-desc');
+
+            const periods = [...new Set(selectedElements.map(s => MAIN_ELEMENTS[s].period))];
+            const groups = [...new Set(selectedElements.map(s => MAIN_ELEMENTS[s].group))];
+
+            if (periods.length === 1 && groups.length > 1) {
+                title.innerText = `Các nguyên tố CÙNG CHU KỲ ${periods[0]} (${selectedElements.join(', ')})`;
+                desc.innerText = `Đi từ trái sang phải trong Chu kỳ ${periods[0]}: Điện tích hạt nhân Z tăng dần nhưng số lớp electron giữ nguyên (${periods[0]} lớp e) ➔ Lực hút hạt nhân tới electron lớp ngoài cùng tăng dần ➔ Bán kính nguyên tử GIẢM DẦN, Độ âm điện TĂNG DẦN, Tính kim loại giảm & Tính acid tăng.`;
+            } else if (groups.length === 1 && periods.length > 1) {
+                title.innerText = `Các nguyên tố CÙNG NHÓM ${groups[0]} xuyên suốt 7 Chu kỳ (${selectedElements.join(', ')})`;
+                desc.innerText = `Đi từ trên xuống dưới trong Nhóm ${groups[0]}: Số lớp electron tăng dần từ ${Math.min(...periods)} đến ${Math.max(...periods)} lớp ➔ Bán kính nguyên tử TĂNG DẦN vượt trội ➔ Lực hút hạt nhân với electron hóa trị giảm đi ➔ Độ âm điện GIẢM DẦN, Tính kim loại & Base TĂNG DẦN.`;
+            } else {
+                title.innerText = `So sánh chéo ${selectedElements.length} nguyên tố (${selectedElements.join(', ')})`;
+                desc.innerText = `Biến đổi phụ thuộc vào 2 yếu tố chính: 
+                1. Số lớp electron (Chu kỳ càng cao thì bán kính càng lớn và lực hút e hóa trị càng yếu).
+                2. Điện tích hạt nhân Z (Trong cùng chu kỳ hoặc nhóm gần kề). Ví dụ: Fr và Cs có bán kính vượt trội hơn hẳn Na, Mg nhờ 6-7 lớp electron!`;
+            }
+        }
+
+        function renderElectronCards() {
+            const container = document.getElementById('electron-cards-container');
+            container.innerHTML = '';
+
+            selectedElements.forEach(sym => {
+                const el = MAIN_ELEMENTS[sym];
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs shadow-sm";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                        <span class="font-black text-sm text-slate-800">${el.name} (<span class="text-indigo-600">${sym}</span>)</span>
+                        <span class="text-[10px] bg-indigo-100 text-indigo-800 font-extrabold px-1.5 py-0.5 rounded">Z = ${el.z}</span>
+                    </div>
+                    <div class="text-slate-600 space-y-0.5">
+                        <div>Vị trí: <b>Chu kỳ ${el.period}</b>, <b>Nhóm ${el.group}</b></div>
+                        <div>Số lớp electron: <b class="text-indigo-600">${el.period} lớp</b></div>
+                        <div>Electron hóa trị: <b class="text-emerald-600">${el.valenceE} e</b></div>
+                    </div>
+                    <div class="pt-1">
+                        <span class="text-[10px] text-slate-400 font-bold block">Cấu hình electron:</span>
+                        <code class="bg-white border border-slate-200 text-indigo-700 px-2 py-0.5 rounded font-mono font-bold block mt-0.5 text-center text-[11px] truncate">${el.shortConfig}</code>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderCSSCharts() {
+            const containerRadius = document.getElementById('chart-radius-css');
+            const containerElectro = document.getElementById('chart-electro-css');
+            containerRadius.innerHTML = '';
+            containerElectro.innerHTML = '';
+
+            const maxRadius = Math.max(...selectedElements.map(s => MAIN_ELEMENTS[s].radius));
+            const maxElectro = 4.0;
+
+            selectedElements.forEach(sym => {
+                const el = MAIN_ELEMENTS[sym];
+
+                // Radius Bar
+                const radiusPct = Math.max(12, (el.radius / maxRadius) * 100);
+                const rRow = document.createElement('div');
+                rRow.className = "flex items-center space-x-2 text-xs";
+                rRow.innerHTML = `
+                    <span class="w-7 font-black text-slate-700 text-right">${sym}</span>
+                    <div class="flex-1 bg-slate-100 rounded-full h-5 overflow-hidden p-0.5 border border-slate-200">
+                        <div class="bg-indigo-600 h-full rounded-full bar-animate flex items-center justify-end px-2 text-[10px] font-bold text-white" style="width: ${radiusPct}%">
+                            ${el.radius} pm
+                        </div>
+                    </div>
+                `;
+                containerRadius.appendChild(rRow);
+
+                // Electro Bar
+                const electroPct = Math.max(10, (el.electronegativity / maxElectro) * 100);
+                const eRow = document.createElement('div');
+                eRow.className = "flex items-center space-x-2 text-xs";
+                eRow.innerHTML = `
+                    <span class="w-7 font-black text-slate-700 text-right">${sym}</span>
+                    <div class="flex-1 bg-slate-100 rounded-full h-5 overflow-hidden p-0.5 border border-slate-200">
+                        <div class="bg-emerald-500 h-full rounded-full bar-animate flex items-center justify-end px-2 text-[10px] font-bold text-white" style="width: ${electroPct}%">
+                            ${el.electronegativity > 0 ? el.electronegativity : 'Dự đoán / Trơ'}
+                        </div>
+                    </div>
+                `;
+                containerElectro.appendChild(eRow);
+            });
+        }
+
+        function renderCompareTable() {
+            const tbody = document.getElementById('compare-table-body');
+            tbody.innerHTML = '';
+
+            selectedElements.forEach(sym => {
+                const el = MAIN_ELEMENTS[sym];
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+
+                tr.innerHTML = `
+                    <td class="p-3 font-black text-slate-800">
+                        <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md mr-1">${sym}</span> ${el.name}
+                    </td>
+                    <td class="p-3 text-slate-600">CK ${el.period}, Nhóm ${el.group}</td>
+                    <td class="p-3 font-semibold text-slate-700">${el.type}</td>
+                    <td class="p-3 font-mono font-bold text-indigo-600">${el.oxide}</td>
+                    <td class="p-3 font-mono font-bold text-emerald-600">${el.hydroxide}</td>
+                    <td class="p-3 font-medium text-slate-700">${el.nature}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        /* ==========================================================================
+           GAME LOGIC
+           ========================================================================== */
+        const GAME_QUESTIONS = [
+            { prompt: "Sắp xếp các nguyên tố theo chiều TĂNG DẦN BÁN KÍNH NGUYÊN TỬ", prop: "radius", mode: "asc", elements: ["Li", "Na", "K", "Cs"] },
+            { prompt: "Sắp xếp các nguyên tố theo chiều GIẢM DẦN BÁN KÍNH NGUYÊN TỬ", prop: "radius", mode: "desc", elements: ["Mg", "Al", "Cl", "K"] },
+            { prompt: "Sắp xếp các nguyên tố theo chiều TĂNG DẦN ĐỘ ÂM ĐIỆN", prop: "electronegativity", mode: "asc", elements: ["K", "Na", "Cl", "F"] },
+            { prompt: "Sắp xếp theo chiều GIẢM DẦN TÍNH KIM LOẠI", prop: "radius", mode: "desc", elements: ["Fr", "Cs", "K", "Na"] },
+            { prompt: "Sắp xếp các nguyên tố chu kỳ 2 theo chiều TĂNG DẦN BÁN KÍNH NGUYÊN TỬ", prop: "radius", mode: "asc", elements: ["Li", "Be", "C", "F"] },
+            { prompt: "Sắp xếp các nguyên tố nhóm VIIA theo chiều GIẢM DẦN BÁN KÍNH NGUYÊN TỬ", prop: "radius", mode: "desc", elements: ["F", "Cl", "Br", "I"] },
+            { prompt: "Sắp xếp các nguyên tố chu kỳ 3 theo chiều TĂNG DẦN ĐỘ ÂM ĐIỆN", prop: "electronegativity", mode: "asc", elements: ["Mg", "Al", "S", "Cl"] },
+            { prompt: "Sắp xếp các nguyên tố nhóm VIIA theo chiều GIẢM DẦN ĐỘ ÂM ĐIỆN", prop: "electronegativity", mode: "desc", elements: ["F", "Cl", "Br", "I"] },
+            { prompt: "Sắp xếp các nguyên tố nhóm IIA theo chiều TĂNG DẦN TÍNH KIM LOẠI", prop: "radius", mode: "asc", elements: ["Be", "Mg", "Ca", "Ba"] },
+            { prompt: "Sắp xếp các nguyên tố chu kỳ 3 theo chiều GIẢM DẦN TÍNH KIM LOẠI", prop: "radius", mode: "desc", elements: ["Na", "Mg", "Al", "Si"] }
+        ];
+
+        let currentGameQuestion = null;
+        let gameCurrentElements = [];
+        let gameScore = 0;
+
+        function initGameRound() {
+            const randomIndex = Math.floor(Math.random() * GAME_QUESTIONS.length);
+            currentGameQuestion = GAME_QUESTIONS[randomIndex];
+            gameCurrentElements = [...currentGameQuestion.elements].sort(() => Math.random() - 0.5);
+
+            document.getElementById('game-prompt').innerText = currentGameQuestion.prompt;
+            document.getElementById('game-result-box').classList.add('hidden');
+
+            renderGameCards();
+        }
+
+        function moveGameCard(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= gameCurrentElements.length) return;
+
+            const temp = gameCurrentElements[index];
+            gameCurrentElements[index] = gameCurrentElements[newIndex];
+            gameCurrentElements[newIndex] = temp;
+
+            renderGameCards();
+            document.getElementById('game-result-box').classList.add('hidden');
+        }
+
+        function renderGameCards(validatedStatus = null) {
+            const container = document.getElementById('game-cards-container');
+            container.innerHTML = '';
+
+            gameCurrentElements.forEach((sym, idx) => {
+                const el = MAIN_ELEMENTS[sym];
+                const card = document.createElement('div');
+
+                let statusBorder = "border-slate-200 bg-white";
+                let statusBadge = "";
+
+                if (validatedStatus) {
+                    if (validatedStatus[idx]) {
+                        statusBorder = "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200";
+                        statusBadge = `<span class="text-[9px] font-black text-emerald-700 bg-emerald-200 px-1.5 py-0.5 rounded">✅ Đúng</span>`;
+                    } else {
+                        statusBorder = "border-rose-500 bg-rose-50 ring-2 ring-rose-200";
+                        statusBadge = `<span class="text-[9px] font-black text-rose-700 bg-rose-200 px-1.5 py-0.5 rounded">❌ Sai</span>`;
+                    }
+                }
+
+                card.className = `p-3.5 rounded-2xl border ${statusBorder} flex flex-col justify-between items-center space-y-2 shadow-sm transition-all`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center w-full">
+                        <span class="text-[10px] font-black text-slate-400">Vị trí ${idx + 1}</span>
+                        ${statusBadge}
+                    </div>
+
+                    <div class="text-center space-y-0.5">
+                        <span class="text-2xl font-black text-slate-800 block">${sym}</span>
+                        <span class="text-[10px] font-semibold text-slate-500 block">${el ? el.name : ''}</span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 w-full pt-1">
+                        <button onclick="moveGameCard(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="flex-1 py-1.5 bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 disabled:opacity-30 text-slate-700 font-extrabold rounded-lg text-xs transition-colors">
+                            ◄ Trái
+                        </button>
+                        <button onclick="moveGameCard(${idx}, 1)" ${idx === gameCurrentElements.length - 1 ? 'disabled' : ''} class="flex-1 py-1.5 bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 disabled:opacity-30 text-slate-700 font-extrabold rounded-lg text-xs transition-colors">
+                            Phải ►
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkGameAnswer() {
+            const targetProp = currentGameQuestion.prop;
+            const mode = currentGameQuestion.mode;
+
+            const correctSorted = [...gameCurrentElements].sort((a, b) => {
+                const valA = MAIN_ELEMENTS[a][targetProp];
+                const valB = MAIN_ELEMENTS[b][targetProp];
+                return mode === 'asc' ? valA - valB : valB - valA;
+            });
+
+            const status = gameCurrentElements.map((sym, idx) => sym === correctSorted[idx]);
+            const isAllCorrect = status.every(s => s === true);
+
+            renderGameCards(status);
+
+            const resultBox = document.getElementById('game-result-box');
+            resultBox.classList.remove('hidden');
+
+            if (isAllCorrect) {
+                gameScore += 10;
+                document.getElementById('game-score').innerText = gameScore;
+                resultBox.className = "w-full p-3.5 rounded-xl text-xs font-extrabold text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
+                resultBox.innerHTML = `🎉 XIN CHÚC MỪNG! Bạn đã sắp xếp chính xác 100%! (+10 điểm)`;
+            } else {
+                resultBox.className = "w-full p-3.5 rounded-xl text-xs font-extrabold text-center bg-rose-100 text-rose-800 border border-rose-300";
+                resultBox.innerHTML = `⚠️ Chưa chính xác. Vui lòng di chuyển lại các thẻ bị đánh dấu đỏ!`;
+            }
+        }
+
+        function showGameHint() {
+            const resultBox = document.getElementById('game-result-box');
+            resultBox.classList.remove('hidden');
+            resultBox.className = "w-full p-3.5 rounded-xl text-xs font-medium text-center bg-amber-50 text-amber-800 border border-amber-200";
+            resultBox.innerHTML = `💡 <b>Gợi ý:</b> Chu kỳ càng cao (nhiều lớp e) thì bán kính nguyên tử càng lớn!`;
+        }
+
+        /* ==========================================================================
+           QUIZ LOGIC
+           ========================================================================== */
+    const QUIZ_TOPICS = [
+      { q: "Trong cùng chu kỳ theo chiều Z tăng dần, bán kính nguyên tử biến đổi thế nào?", opts: ["Tăng dần", "Giảm dần", "Không đổi", "Biến đổi không quy luật"], c: 1, exp: "Số lớp e không đổi, Z tăng làm lực hút hạt nhân tăng -> Bán kính giảm." },
+      { q: "Trong cùng nhóm A từ trên xuống, bán kính nguyên tử biến đổi thế nào?", opts: ["Giảm dần", "Tăng dần", "Không đổi", "Tăng rồi giảm"], c: 1, exp: "Số lớp electron tăng dần -> Bán kính tăng dần." },
+      { q: "Nguyên tố nào có tính kim loại mạnh nhất trong các nguyên tố Na, Mg, K, Cs?", opts: ["Na", "Mg", "K", "Cs"], c: 3, exp: "Cs ở chu kỳ 6 nhóm IA có bán kính lớn nhất -> Dễ nhường e nhất -> Kim loại mạnh nhất." },
+      { q: "Nguyên tố nào có độ âm điện lớn nhất trên Bảng tuần hoàn?", opts: ["Fluorine (F)", "Chlorine (Cl)", "Oxygen (O)", "Cesium (Cs)"], c: 0, exp: "Fluorine (F) có độ âm điện lớn nhất là 3.98 theo thang Pauling." },
+      { q: "Hydroxide nào sau đây có tính acid mạnh nhất?", opts: ["NaOH", "Mg(OH)₂", "Al(OH)₃", "HClO₄"], c: 3, exp: "HClO₄ là acid rất mạnh (perchloric acid)." },
+      { q: "Các nguyên tố trong bảng tuần hoàn hiện đại được sắp xếp theo chiều tăng dần của đại lượng nào?", opts: ["Nguyên tử khối", "Số neutron", "Điện tích hạt nhân", "Bán kính nguyên tử"], c: 2, exp: "Bảng tuần hoàn sắp xếp các nguyên tố theo chiều tăng dần điện tích hạt nhân, tức số hiệu nguyên tử Z." },
+      { q: "Số hiệu nguyên tử Z của một nguyên tố bằng số hạt nào trong hạt nhân?", opts: ["Proton", "Neutron", "Electron", "Proton và neutron"], c: 0, exp: "Z bằng số proton trong hạt nhân. Với nguyên tử trung hòa, Z cũng bằng số electron." },
+      { q: "Một nguyên tử trung hòa có 17 proton thì có bao nhiêu electron?", opts: ["7", "18", "34", "17"], c: 3, exp: "Nguyên tử trung hòa có số electron bằng số proton, nên có 17 electron." },
+      { q: "Số thứ tự chu kỳ cho biết đặc điểm nào của nguyên tử nguyên tố trong chu kỳ đó?", opts: ["Số neutron", "Số lớp electron có electron", "Số electron độc thân", "Số đồng vị"], c: 1, exp: "Ở trạng thái cơ bản, số lớp electron có electron bằng số thứ tự chu kỳ." },
+      { q: "Bảng tuần hoàn có bao nhiêu chu kỳ?", opts: ["8", "18", "7", "6"], c: 2, exp: "Bảng tuần hoàn gồm 7 chu kỳ, được đánh số từ 1 đến 7." },
+      { q: "Chu kỳ 1 gồm những nguyên tố nào?", opts: ["H và He", "Li và Be", "H và Li", "He và Ne"], c: 0, exp: "Chu kỳ 1 chỉ gồm hydrogen (H, Z = 1) và helium (He, Z = 2)." },
+      { q: "Chu kỳ 3 có bao nhiêu nguyên tố?", opts: ["2", "18", "32", "8"], c: 3, exp: "Chu kỳ 3 gồm 8 nguyên tố từ Na (Z = 11) đến Ar (Z = 18)." },
+      { q: "Các nguyên tố nhóm IA, trừ hydrogen, được gọi là gì?", opts: ["Kim loại kiềm thổ", "Kim loại kiềm", "Halogen", "Khí hiếm"], c: 1, exp: "Li, Na, K, Rb, Cs và Fr thuộc nhóm kim loại kiềm." },
+      { q: "Nguyên tố nào sau đây thuộc nhóm kim loại kiềm thổ?", opts: ["Na", "Al", "Ca", "Cl"], c: 2, exp: "Ca thuộc nhóm IIA, là nhóm kim loại kiềm thổ." },
+      { q: "Nguyên tố nào sau đây thuộc nhóm halogen?", opts: ["Br", "O", "Ne", "Mg"], c: 0, exp: "Bromine (Br) thuộc nhóm VIIA (nhóm 17), tức nhóm halogen." },
+      { q: "Nguyên tố nào sau đây là khí hiếm?", opts: ["N", "H", "Cl", "Ar"], c: 3, exp: "Argon (Ar) thuộc nhóm VIIIA (nhóm 18), là khí hiếm." },
+      { q: "Nguyên tử nguyên tố nhóm IIA có bao nhiêu electron ở lớp ngoài cùng?", opts: ["1", "2", "6", "8"], c: 1, exp: "Các nguyên tố nhóm IIA có cấu hình lớp ngoài cùng ns², gồm 2 electron." },
+      { q: "Nguyên tử halogen có bao nhiêu electron ở lớp ngoài cùng?", opts: ["5", "6", "7", "8"], c: 2, exp: "Halogen thuộc nhóm VIIA, có cấu hình lớp ngoài cùng ns²np⁵, gồm 7 electron." },
+      { q: "Nguyên tử khí hiếm nào có lớp ngoài cùng chỉ chứa 2 electron?", opts: ["He", "Ne", "Ar", "Kr"], c: 0, exp: "Helium có cấu hình 1s². Lớp thứ nhất chỉ chứa tối đa 2 electron và đã bão hòa." },
+      { q: "Nguyên tố có cấu hình electron 1s² 2s² 2p⁶ 3s¹ nằm ở vị trí nào?", opts: ["Chu kỳ 2, nhóm IA", "Chu kỳ 3, nhóm IIA", "Chu kỳ 1, nhóm IIIA", "Chu kỳ 3, nhóm IA"], c: 3, exp: "Đây là Na: có 3 lớp electron và 1 electron lớp ngoài cùng, nên thuộc chu kỳ 3, nhóm IA." },
+      { q: "Nguyên tố có cấu hình electron [Ne] 3s² 3p⁵ là nguyên tố nào?", opts: ["S", "Cl", "Ar", "P"], c: 1, exp: "Tổng số electron là 10 + 2 + 5 = 17, ứng với chlorine (Cl)." },
+      { q: "Cấu hình electron nào sau đây là của Mg (Z = 12) ở trạng thái cơ bản?", opts: ["[Ne] 3s¹", "[Ne] 3s² 3p²", "[Ne] 3s²", "[Ar] 4s²"], c: 2, exp: "Mg có 12 electron; sau lõi [Ne] gồm 10 electron còn 2 electron ở phân lớp 3s." },
+      { q: "Nguyên tử có electron phân bố trên các lớp là 2, 8, 8, 1 thuộc chu kỳ nào?", opts: ["Chu kỳ 4", "Chu kỳ 1", "Chu kỳ 3", "Chu kỳ 2"], c: 0, exp: "Nguyên tử có 4 lớp electron có electron nên thuộc chu kỳ 4. Đây là nguyên tử K." },
+      { q: "Nguyên tố có Z = 13 thuộc nhóm A nào?", opts: ["IA", "IIA", "VA", "IIIA"], c: 3, exp: "Al có Z = 13, cấu hình [Ne] 3s² 3p¹, có 3 electron lớp ngoài cùng nên thuộc nhóm IIIA." },
+      { q: "Cặp nguyên tố nào sau đây thuộc cùng một nhóm A?", opts: ["Na và Mg", "O và S", "Al và Si", "Cl và Ar"], c: 1, exp: "O và S cùng thuộc nhóm VIA, đều có 6 electron lớp ngoài cùng." },
+      { q: "Cặp nguyên tố nào sau đây thuộc cùng một chu kỳ?", opts: ["Li và Na", "F và Cl", "Mg và Cl", "K và Cs"], c: 2, exp: "Mg và Cl đều thuộc chu kỳ 3, có 3 lớp electron ở trạng thái cơ bản." },
+      { q: "Vì sao các nguyên tố trong cùng nhóm A thường có tính chất hóa học tương tự nhau?", opts: ["Có cấu hình electron lớp ngoài cùng tương tự nhau", "Có cùng số neutron", "Có cùng nguyên tử khối", "Có cùng số lớp electron"], c: 0, exp: "Cấu hình electron lớp ngoài cùng tương tự nhau dẫn đến những đặc điểm hóa học tương tự nhau." },
+      { q: "Trong các nguyên tử Na, Mg, Al, Si, nguyên tử nào có bán kính nhỏ nhất?", opts: ["Na", "Mg", "Al", "Si"], c: 3, exp: "Các nguyên tố này cùng chu kỳ 3. Theo chiều Na → Mg → Al → Si, bán kính nguyên tử giảm dần." },
+      { q: "Dãy nào sắp xếp đúng theo chiều tăng dần bán kính nguyên tử?", opts: ["K < Na < Li", "Li < Na < K", "Na < Li < K", "Li < K < Na"], c: 1, exp: "Li, Na, K cùng nhóm IA. Từ trên xuống số lớp electron tăng, nên Li < Na < K về bán kính." },
+      { q: "Nguyên tử Na nhường 1 electron tạo Na⁺ thì kích thước thay đổi thế nào?", opts: ["Tăng vì số proton tăng", "Không đổi", "Giảm vì mất lớp electron ngoài cùng", "Tăng vì có thêm một lớp electron"], c: 2, exp: "Na có phân bố electron 2, 8, 1; Na⁺ có phân bố 2, 8. Mất lớp ngoài cùng làm kích thước giảm." },
+      { q: "So với nguyên tử Cl, ion Cl⁻ có bán kính như thế nào?", opts: ["Lớn hơn", "Nhỏ hơn", "Bằng nhau", "Bằng 0"], c: 0, exp: "Khi nhận thêm electron, lực đẩy giữa các electron tăng trong khi điện tích hạt nhân không đổi, nên Cl⁻ lớn hơn Cl." },
+      { q: "Trong các ion cùng có 10 electron: O²⁻, F⁻, Na⁺, Mg²⁺, ion nào nhỏ nhất?", opts: ["O²⁻", "F⁻", "Na⁺", "Mg²⁺"], c: 3, exp: "Với các ion đẳng electron, điện tích hạt nhân càng lớn thì bán kính càng nhỏ. Mg²⁺ có Z = 12 lớn nhất trong bốn ion." },
+      { q: "Độ âm điện đặc trưng cho khả năng nào của nguyên tử?", opts: ["Hút neutron tự do", "Hút electron khi tạo liên kết hóa học", "Phát ra proton", "Tăng số lớp electron"], c: 1, exp: "Độ âm điện đặc trưng cho khả năng hút electron của nguyên tử khi hình thành liên kết hóa học." },
+      { q: "Trong một chu kỳ, từ trái sang phải và không xét khí hiếm, độ âm điện nhìn chung biến đổi thế nào?", opts: ["Giảm dần", "Luôn bằng 0", "Tăng dần", "Không đổi"], c: 2, exp: "Trong một chu kỳ, lực hút của hạt nhân đối với electron liên kết nhìn chung tăng, nên độ âm điện tăng." },
+      { q: "Trong nhóm VIIA từ F đến I, độ âm điện biến đổi thế nào?", opts: ["Giảm dần", "Tăng dần", "Không đổi", "Giảm rồi tăng lên cao hơn F"], c: 0, exp: "Từ F xuống I, bán kính và mức độ che chắn electron tăng, nên khả năng hút electron liên kết giảm." },
+      { q: "Trong các nguyên tố Na, Mg, S, Cl, nguyên tố nào có độ âm điện lớn nhất?", opts: ["Na", "Mg", "S", "Cl"], c: 3, exp: "Cả bốn thuộc chu kỳ 3; Cl nằm xa bên phải nhất và có độ âm điện lớn nhất trong bốn nguyên tố." },
+      { q: "Dãy nào sắp xếp đúng theo chiều tăng dần độ âm điện?", opts: ["F < O < N < C", "C < N < O < F", "C < O < N < F", "N < C < F < O"], c: 1, exp: "Trong chu kỳ 2, độ âm điện tăng theo thứ tự C (2,55) < N (3,04) < O (3,44) < F (3,98)." },
+      { q: "Tính kim loại đặc trưng cho xu hướng nào của nguyên tử khi tham gia phản ứng hóa học?", opts: ["Nhận electron tạo anion", "Nhận proton", "Nhường electron tạo cation", "Nhường neutron"], c: 2, exp: "Nguyên tử kim loại có xu hướng nhường electron để tạo ion dương (cation)." },
+      { q: "Trong chu kỳ 3, từ Na đến Cl, tính kim loại biến đổi theo xu hướng nào?", opts: ["Giảm dần", "Tăng dần", "Không đổi", "Chỉ tăng ở Cl"], c: 0, exp: "Từ Na đến Cl, khả năng nhường electron giảm và tính phi kim tăng, nên tính kim loại giảm." },
+      { q: "Trong nhóm IIA từ Be đến Ba, tính kim loại biến đổi theo xu hướng nào?", opts: ["Giảm dần", "Không đổi", "Biến mất hoàn toàn", "Tăng dần"], c: 3, exp: "Đi xuống nhóm IIA, bán kính tăng và electron ngoài cùng dễ bị nhường hơn, nên tính kim loại tăng." },
+      { q: "Nguyên tố nào có tính phi kim mạnh nhất trong các nguyên tố P, S, Cl, Si?", opts: ["P", "Cl", "S", "Si"], c: 1, exp: "Các nguyên tố này cùng chu kỳ 3; tính phi kim tăng theo chiều Si → P → S → Cl." },
+      { q: "Dãy nào sắp xếp đúng theo chiều tăng dần tính kim loại?", opts: ["Na < Mg < Al", "Mg < Al < Na", "Al < Mg < Na", "Al < Na < Mg"], c: 2, exp: "Trong chu kỳ 3, tính kim loại giảm từ Na đến Al, nên chiều tăng dần là Al < Mg < Na." },
+      { q: "Khi tạo hợp chất ion với chlorine, nguyên tử Mg thường tạo ion nào?", opts: ["Mg²⁺", "Mg⁻", "Mg²⁻", "Mg⁺"], c: 0, exp: "Mg có 2 electron lớp ngoài cùng và thường nhường cả 2 electron, tạo Mg²⁺ với cấu hình bền của Ne." },
+      { q: "Khi tạo hợp chất ion với sodium, nguyên tử oxygen thường tạo ion nào?", opts: ["O⁺", "O²⁺", "O⁻", "O²⁻"], c: 3, exp: "O có 6 electron lớp ngoài cùng, thường nhận 2 electron để đạt 8 electron, tạo ion O²⁻." },
+      { q: "Ion Al³⁺ có bao nhiêu electron, biết Al có Z = 13?", opts: ["13", "10", "16", "3"], c: 1, exp: "Nguyên tử Al có 13 electron. Khi nhường 3 electron tạo Al³⁺, ion còn 10 electron." },
+      { q: "Trong NaF, ion nào có cấu hình electron giống khí hiếm Ne?", opts: ["Chỉ Na⁺", "Chỉ F⁻", "Cả Na⁺ và F⁻", "Không ion nào"], c: 2, exp: "Na⁺ có 11 − 1 = 10 electron; F⁻ có 9 + 1 = 10 electron. Cả hai đều có cấu hình 1s² 2s² 2p⁶ của Ne." },
+      { q: "Công thức oxide cao nhất của sulfur thuộc nhóm VIA là gì?", opts: ["SO₃", "SO₂", "S₂O", "SO"], c: 0, exp: "Trong oxide cao nhất, S có số oxi hóa +6 và O có số oxi hóa −2, nên công thức là SO₃." },
+      { q: "Công thức oxide cao nhất của phosphorus thuộc nhóm VA là gì?", opts: ["PO", "P₂O₃", "PO₂", "P₂O₅"], c: 3, exp: "P có số oxi hóa cao nhất +5. Công thức oxide thường dùng trong chương trình phổ thông là P₂O₅." },
+      { q: "Công thức hợp chất khí của silicon với hydrogen là gì?", opts: ["SiH₂", "SiH₄", "Si₂H", "SiH₃"], c: 1, exp: "Silicon thuộc nhóm IVA và tạo hợp chất khí với hydrogen là silane, SiH₄." },
+      { q: "Oxide nào sau đây là oxide base?", opts: ["SO₃", "CO₂", "Na₂O", "P₂O₅"], c: 2, exp: "Na₂O là oxide base, phản ứng với nước tạo NaOH. Các oxide còn lại là oxide acid." },
+      { q: "Oxide nào sau đây có tính lưỡng tính?", opts: ["Al₂O₃", "Na₂O", "MgO", "SO₃"], c: 0, exp: "Al₂O₃ phản ứng được với cả acid và base mạnh, nên là oxide lưỡng tính." },
+      { q: "Hydroxide nào sau đây có tính lưỡng tính?", opts: ["NaOH", "KOH", "Ca(OH)₂", "Al(OH)₃"], c: 3, exp: "Al(OH)₃ phản ứng được với acid và với dung dịch base mạnh, nên có tính lưỡng tính." },
+      { q: "SO₃ phản ứng với nước tạo ra chất nào?", opts: ["H₂SO₃", "H₂SO₄", "H₂S", "Na₂SO₄"], c: 1, exp: "SO₃ là oxide acid tương ứng với sulfuric acid: SO₃ + H₂O → H₂SO₄." },
+      { q: "Na₂O phản ứng với nước tạo ra chất nào?", opts: ["NaCl", "NaH", "NaOH", "Na₂CO₃"], c: 2, exp: "Na₂O + H₂O → 2NaOH. Sản phẩm là sodium hydroxide, một base mạnh." },
+      { q: "Từ Na₂O, MgO đến Al₂O₃ trong chu kỳ 3, tính base biến đổi theo xu hướng nào?", opts: ["Giảm dần", "Tăng dần", "Không đổi", "Chỉ tăng ở Al₂O₃"], c: 0, exp: "Na₂O có tính base mạnh; MgO có tính base yếu hơn; Al₂O₃ có tính lưỡng tính. Vì vậy tính base giảm dần." },
+      { q: "Dãy acid nào được sắp xếp theo chiều tăng dần độ mạnh?", opts: ["HClO₄ < H₂SO₄ < H₃PO₄", "H₂SO₄ < H₃PO₄ < HClO₄", "H₃PO₄ < HClO₄ < H₂SO₄", "H₃PO₄ < H₂SO₄ < HClO₄"], c: 3, exp: "Với các oxoacid này của nguyên tố chu kỳ 3 ở số oxi hóa cao nhất, độ mạnh acid tăng theo H₃PO₄ < H₂SO₄ < HClO₄." },
+      { q: "Nguyên tố X thuộc chu kỳ 3, nhóm IIA. Oxide của X có công thức nào?", opts: ["Na₂O", "MgO", "Al₂O₃", "SO₃"], c: 1, exp: "X là Mg. Mg có hóa trị II, oxygen có hóa trị II nên oxide là MgO." },
+      { q: "Hai nguyên tố có số hiệu nguyên tử Z = 9 và Z = 17 có điểm chung nào?", opts: ["Cùng chu kỳ 2", "Cùng có 3 lớp electron", "Cùng có 7 electron lớp ngoài cùng", "Cùng là kim loại"], c: 2, exp: "Z = 9 là F và Z = 17 là Cl. Cả hai thuộc nhóm VIIA và có 7 electron lớp ngoài cùng." },
+      { q: "Nguyên tố có 3 lớp electron và 6 electron lớp ngoài cùng là nguyên tố nào?", opts: ["S", "O", "Cl", "P"], c: 0, exp: "Có 3 lớp electron nên thuộc chu kỳ 3; có 6 electron ngoài cùng nên thuộc nhóm VIA. Đó là sulfur (S)." },
+      { q: "Nguyên tử X có cấu hình [Ne] 3s² 3p¹. Công thức chloride thông thường của X là gì?", opts: ["XCl", "XCl₂", "XCl₄", "XCl₃"], c: 3, exp: "X là Al, thường có số oxi hóa +3 trong hợp chất. Với Cl có số oxi hóa −1, chloride là AlCl₃, tức XCl₃." }
+    ];
+        const QUIZ_QUESTIONS = QUIZ_TOPICS.map(base => {
+            return {
+                q: base.q,
+                options: base.opts.map((option, optionIndex) => `${String.fromCharCode(65 + optionIndex)}. ${option}`),
+                correct: base.c,
+                explain: base.exp
+            };
+        });
+
+        let currentQuizIndex = 0;
+        let selectedAnswers = {};
+
+        function initQuiz() {
+            currentQuizIndex = 0;
+            selectedAnswers = {};
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const q = QUIZ_QUESTIONS[currentQuizIndex];
+            document.getElementById('quiz-question-text').innerText = `${currentQuizIndex + 1}. ${q.q}`;
+            document.getElementById('quiz-progress-badge').innerText = `Câu ${currentQuizIndex + 1} / ${QUIZ_QUESTIONS.length}`;
+
+            const container = document.getElementById('quiz-options-container');
+            container.innerHTML = '';
+
+            const expBox = document.getElementById('quiz-explanation');
+            expBox.classList.add('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => selectQuizAnswer(idx);
+
+                let btnStyle = "bg-slate-50 border-slate-200 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300";
+
+                if (selectedAnswers[currentQuizIndex] !== undefined) {
+                    if (idx === q.correct) {
+                        btnStyle = "bg-emerald-100 border-emerald-400 text-emerald-900 font-bold";
+                    } else if (idx === selectedAnswers[currentQuizIndex]) {
+                        btnStyle = "bg-rose-100 border-rose-400 text-rose-900 font-bold";
+                    }
+                }
+
+                btn.className = `w-full text-left p-3.5 rounded-xl border font-medium text-xs transition-all ${btnStyle}`;
+                btn.innerText = opt;
+                container.appendChild(btn);
+            });
+
+            if (selectedAnswers[currentQuizIndex] !== undefined) {
+                expBox.classList.remove('hidden');
+                const isCorrect = selectedAnswers[currentQuizIndex] === q.correct;
+                document.getElementById('quiz-explain-status').innerText = isCorrect ? "🎉 Bạn đã trả lời ĐÚNG!" : "❌ Trả lời CHƯA ĐÚNG!";
+                document.getElementById('quiz-explain-status').className = isCorrect ? "font-bold text-emerald-700" : "font-bold text-rose-700";
+                document.getElementById('quiz-explain-text').innerText = q.explain;
+            }
+
+            document.getElementById('btn-quiz-prev').disabled = currentQuizIndex === 0;
+            document.getElementById('btn-quiz-next').innerText = currentQuizIndex === QUIZ_QUESTIONS.length - 1 ? "Hoàn Thành 🏁" : "Câu Tiếp ►";
+        }
+
+        function selectQuizAnswer(idx) {
+            if (selectedAnswers[currentQuizIndex] !== undefined) return;
+            selectedAnswers[currentQuizIndex] = idx;
+            renderQuizQuestion();
+        }
+
+        function prevQuizQuestion() {
+            if (currentQuizIndex > 0) {
+                currentQuizIndex--;
+                renderQuizQuestion();
+            }
+        }
+
+        function nextQuizQuestion() {
+            if (currentQuizIndex < QUIZ_QUESTIONS.length - 1) {
+                currentQuizIndex++;
+                renderQuizQuestion();
+            } else {
+                alert("🎉 Chúc mừng bạn đã hoàn thành bài luyện tập trắc nghiệm 7 chu kỳ!");
+            }
+        }
+
+        /* KHỞI CHẠY KHỔI ĐẦU */
+        window.onload = function() {
+            updateCompareTab();
+        };
+    </script>
+</body>
+</html>
